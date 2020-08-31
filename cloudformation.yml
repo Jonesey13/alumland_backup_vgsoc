@@ -1,0 +1,107 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: ""
+Metadata: {}
+
+Parameters:
+    SteamUsername:
+        Type: String
+        Description: Steam Account Username
+
+    SteamPassword:
+        Type: String
+        Description: Steam Account Password
+
+    ResourcePrefix:
+        Type: String
+        Description: Prefix for AWS Resources
+
+    VpcId:
+        Type: AWS::EC2::VPC::Id
+        Description: Vpc Id
+
+    InstanceKeyPair:
+        Type: AWS::EC2::KeyPair::KeyName
+        Description: KeyPair for EC2 Instances
+
+    SSHKeyName:
+        Type: String
+        Description: SSH key for the server
+        Default: gmod_server_rsa
+
+Mappings: {}
+
+Conditions: {}
+
+Resources:
+    ControlNodeInstance:
+      Type: AWS::EC2::Instance
+      Properties:
+        KeyName: !Ref InstanceKeyPair
+        ImageId: ami-0a13d44dccf1f5cf6
+        InstanceType: t2.micro
+        Monitoring: true
+        IamInstanceProfile: !Ref InstanceProfile
+        SecurityGroupIds: 
+        - !Ref InstanceSecurityGroup
+        UserData: 
+            Fn::Base64: 
+                !Sub |
+                    #!/bin/bash -ex
+                    exec > /tmp/userdata.log 2>&1
+
+                    pushd /home/ec2-user/.ssh
+                    aws s3 cp s3://gmod/${SSHKeyName}.pub ./id_rsa.pub
+                    chown ec2-user ./id_rsa.pub
+                    chmod 600 ./id_rsa.pub
+                    aws s3 cp s3://gmod/${SSHKeyName} ./id_rsa
+                    chown ec2-user ./id_rsa
+                    popd
+
+                    
+
+        Tags:
+        - 
+            Key: Name
+            Value: !Sub ${ResourcePrefix}_gmod_server
+
+    InstanceProfile:
+        Type: AWS::IAM::InstanceProfile
+        Properties:
+            InstanceProfileName: !Sub ${ResourcePrefix}_gmod_InstanceProfile
+            Roles:
+            - !Ref InstanceRole
+
+    InstanceRole:
+        Type: AWS::IAM::Role
+        Properties:
+            RoleName: !Sub ${ResourcePrefix}_gmod_InstanceRole
+            AssumeRolePolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                - 
+                    Effect: Allow
+                    Principal:
+                        Service: ec2.amazonaws.com
+                    Action: sts:AssumeRole
+            ManagedPolicyArns:
+                - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+
+    InstanceSecurityGroup:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+            GroupName: !Sub ${ResourcePrefix}_gmod_SecurityGroup
+            GroupDescription: EC2 Instance Security Group
+            SecurityGroupIngress:
+            - 
+                IpProtocol: tcp
+                FromPort: 22
+                ToPort: 22
+                CidrIp: 0.0.0.0/0
+            - 
+                IpProtocol: tcp
+                FromPort: 27015
+                ToPort: 27015
+                CidrIp: 0.0.0.0/0
+            VpcId: !Ref VpcId
+
+Outputs: {}
