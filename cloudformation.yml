@@ -102,6 +102,31 @@ Resources:
                 FromPort: 27015
                 ToPort: 27015
                 CidrIp: 0.0.0.0/0
+            - 
+                IpProtocol: tcp
+                FromPort: 27016
+                ToPort: 27016
+                CidrIp: 0.0.0.0/0
+            - 
+                IpProtocol: tcp
+                FromPort: 27005
+                ToPort: 27005
+                CidrIp: 0.0.0.0/0
+            - 
+                IpProtocol: udp
+                FromPort: 27015
+                ToPort: 27015
+                CidrIp: 0.0.0.0/0
+            - 
+                IpProtocol: udp
+                FromPort: 27016
+                ToPort: 27016
+                CidrIp: 0.0.0.0/0
+            - 
+                IpProtocol: udp
+                FromPort: 27005
+                ToPort: 27005
+                CidrIp: 0.0.0.0/0
             VpcId: !Ref VpcId
 
 Outputs: {}

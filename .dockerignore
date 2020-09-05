@@ -1,0 +1,6 @@
+docker*
+cloudformation.yml
+README.md
+.gitignore
+.env
+.git

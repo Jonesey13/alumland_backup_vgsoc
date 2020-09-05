@@ -12,3 +12,7 @@ services:
       - "27005:27005/tcp"
     env_file:
       - ./.env
+    volumes:
+      - gmod_data:/home/steam/gmodds
+volumes:
+  gmod_data:
