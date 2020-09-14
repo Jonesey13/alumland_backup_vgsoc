@@ -27,6 +27,11 @@ Parameters:
         Type: String
         Description: Password for normal players
 
+    WorkshopCollectionId:
+        Type: String
+        Description: Steam Workshop Collection Id
+        Default: 2215505010
+
 Mappings: {}
 
 Conditions: {}
@@ -132,15 +137,18 @@ Resources:
                     - 
                         Name: RCON_PASSWORD
                         Value: !Ref RConPassword
+                    - 
+                        Name: WORKSHOP_COLLECTION_ID
+                        Value: !Ref WorkshopCollectionId
                 PortMappings:
-                - 
-                    Protocol: tcp
-                    HostPort: 27015
-                    ContainerPort: 27015
-                - 
-                    Protocol: udp
-                    HostPort: 27015
-                    ContainerPort: 27015
+                    - 
+                        Protocol: tcp
+                        HostPort: 27015
+                        ContainerPort: 27015
+                    - 
+                        Protocol: udp
+                        HostPort: 27015
+                        ContainerPort: 27015
                 Image: !Ref EcrImageName
                 Name: Gmod_AlumLand_Container
                 MountPoints:

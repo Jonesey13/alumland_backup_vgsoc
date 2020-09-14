@@ -20,4 +20,4 @@ cp ~/server.cfg ~/gmodds/garrysmod/cfg
 sed -i "s/sv_password/sv_password ${SERVER_PASSWORD}/" ~/gmodds/garrysmod/cfg/server.cfg
 sed -i "s/rcon_password/rcon_password ${RCON_PASSWORD}/" ~/gmodds/garrysmod/cfg/server.cfg
 
-~/gmodds/srcds_run -game garrysmod +gamemode prop_hunt +maxplayers 32 +map cs_italy +host_workshop_collection 2215505010 -ip 0.0.0.0 -port ${SERVER_PORT:=27015} -condebug
+~/gmodds/srcds_run -game garrysmod +gamemode prop_hunt +maxplayers 32 +map cs_italy +host_workshop_collection ${WORKSHOP_COLLECTION_ID:=2215505010} -ip 0.0.0.0 -port ${SERVER_PORT:=27015} -condebug
