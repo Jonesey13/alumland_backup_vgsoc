@@ -19,9 +19,13 @@ Parameters:
         Type: List<AWS::EC2::Subnet::Id>
         Description: Select subnets for the scaling group
 
-    SshPassword:
+    RConPassword:
         Type: String
-        Description: Temporary SSH Password
+        Description: RCon Password
+
+    ServerPassword:
+        Type: String
+        Description: Password for normal players
 
 Mappings: {}
 
@@ -48,7 +52,7 @@ Resources:
             IamInstanceProfile: !Ref InstanceProfile
             ImageId: ami-09b1109d40fc89d9e
             InstanceMonitoring: false
-            InstanceType: t2.micro
+            InstanceType: t2.small
             KeyName: !Ref InstanceKeyPair
             SecurityGroups:
                 - Ref: InstanceSecurityGroup
@@ -59,11 +63,6 @@ Resources:
                         exec > /tmp/userdata.log 2>&1
                         echo ECS_CLUSTER=${EcsCluster} >> /etc/ecs/ecs.config
                         echo ECS_BACKEND_HOST= >> /etc/ecs/ecs.config;
-
-                        # Enable password login (with given password)
-                        sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
-                        sudo usermod --password $(echo ${SshPassword} | openssl passwd -1 -stdin) ec2-user
-                        sudo service sshd restart
 
                         #install the Docker volume plugin
                         docker plugin install rexray/ebs REXRAY_PREEMPT=true EBS_REGION=eu-west-2 --grant-all-permissions
@@ -111,19 +110,9 @@ Resources:
                 ToPort: 27015
                 CidrIp: 0.0.0.0/0
             - 
-                IpProtocol: tcp
-                FromPort: 27005
-                ToPort: 27005
-                CidrIp: 0.0.0.0/0
-            - 
                 IpProtocol: udp
                 FromPort: 27015
                 ToPort: 27015
-                CidrIp: 0.0.0.0/0
-            - 
-                IpProtocol: udp
-                FromPort: 27005
-                ToPort: 27005
                 CidrIp: 0.0.0.0/0
             VpcId: !Ref VpcId
 
@@ -132,6 +121,17 @@ Resources:
         Properties:
             ContainerDefinitions:
             - 
+                EntryPoint:
+                    - tail 
+                    - -f 
+                    - /dev/null
+                Environment:
+                    - 
+                        Name: SERVER_PASSWORD
+                        Value: !Ref ServerPassword
+                    - 
+                        Name: RCON_PASSWORD
+                        Value: !Ref RConPassword
                 PortMappings:
                 - 
                     Protocol: tcp
@@ -141,21 +141,13 @@ Resources:
                     Protocol: udp
                     HostPort: 27015
                     ContainerPort: 27015
-                - 
-                    Protocol: tcp
-                    HostPort: 27005
-                    ContainerPort: 27005
-                - 
-                    Protocol: udp
-                    HostPort: 27005
-                    ContainerPort: 27005
                 Image: !Ref EcrImageName
                 Name: Gmod_AlumLand_Container
                 MountPoints:
                     - 
                         ContainerPath: /home/steam/gmodds
                         SourceVolume: gmod_data
-            Memory: "2048"
+            Memory: "1024"
             TaskRoleArn: !Ref TaskExecutionRole
             ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
             Volumes: 
